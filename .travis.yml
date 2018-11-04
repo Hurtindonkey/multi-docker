@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hurtindonkey/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run hurtindonkey/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t hurtindonkey/multi-client ./client
+  - docker build -t hurtindonkey/multi-nginx ./nginx
+  - docker build -t hurtindonkey/multi-server ./server
+  - docker build -t hurtindonkey/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push hurtindonkey/multi-client
+  - docker push hurtindonkey/multi-nginx
+  - docker push hurtindonkey/multi-server
+  - docker push hurtindonkey/multi-worker
